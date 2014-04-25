@@ -93,8 +93,9 @@ function TransitionManager:launch(scene,transition)
 end
 
 function TransitionManager:makeVisible(scene,isVisible) 								-- set visibility state - allows use of different objects.
-	if scene ~= nil then 																-- if there is a scene, then set its visibility state.
-		scene.isVisible = isVisible
+	if scene ~= nil then 																-- if there is a scene, then 
+		scene.isVisible = isVisible 													-- set its visibility state.
+		scene:toFront() 																-- move to the top of the stack
 	end
 end
 
@@ -113,6 +114,7 @@ function TransitionManager:transitionCompletedMessage()
 
 	if self.launchCount == 0 then 														-- have we actually finished now ?
 		self:makeVisible(self.sceneInfo.fromScene,true) 								-- make the from scene visible again, so both are visible on exit.
+		self:makeVisible(self.sceneInfo.toScene,true) 									-- make to scene visible, so it comes on top.
 		local target = self.sceneInfo.target 											-- get the message target
 		self.sceneInfo = nil 															-- remove any references we do not want.
 		if target ~= nil then 								 							-- and tell the target we are done.
@@ -246,8 +248,4 @@ defineTransition("crossfade",
 		{ alphaStart = 0, alphaEnd = 1.0 }, 
 		{ concurrent = true })
 
-if _G.__TransitionManagerInstance == nil then
-	_G.__TransitionManagerInstance = TransitionManager
-end
-
-return _G.__TransitionManagerInstance
+return TransitionManager 
