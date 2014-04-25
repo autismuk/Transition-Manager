@@ -83,6 +83,7 @@ function TransitionManager:execute(transitionName,target,fromScene,toScene,time)
 	elseif fromScene ~= nil then 														-- else if there is a from, run that first.
 		self:launch(fromScene,self.transition.from) 
 	else  																				-- if there is only a 'to' scene, run that.
+		self:makeVisible(toScene,true) 													-- make it visible first
 		self:launch(toScene,self.transition.to)
 	end
 end

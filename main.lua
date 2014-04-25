@@ -30,4 +30,4 @@ function recipient:transitionCompleted()
 end
 
 tt = "flip"
-transitions:execute(tt,recipient,scene1,scene2,1000)
+transitions:execute(tt,recipient,nil,scene2,1000)
