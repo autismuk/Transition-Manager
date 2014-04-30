@@ -1,9 +1,21 @@
+--- ************************************************************************************************************************************************************************
+---
+---				Name : 		transition.lua
+---				Purpose :	Class managing transitions to and from view objects.
+---				Created:	30 April 2014
+---				Author:		Paul Robson (paul@robsons.org.uk)
+---				License:	MIT
+---
+--- ************************************************************************************************************************************************************************
+
 -- Standard OOP (with Constructor parameters added.)
 _G.Base =  _G.Base or { new = function(s,...) local o = { } setmetatable(o,s) s.__index = s s:initialise(...) return o end, initialise = function() end }
 
---
---		Class encapsulating a single transition, which can perform a transition on a display object or (eventually) my View Scene class.
---
+--- ************************************************************************************************************************************************************************
+---
+---						Class encapsulating a single transition, which can perform a transition on a display object or my Scene class.
+---
+--- ************************************************************************************************************************************************************************
 local Transition = Base:new()
 
 function Transition:set(description,option)
@@ -44,9 +56,12 @@ Transition.defaults = { alphaStart = 1.0, alphaEnd = 1.0,								-- List of tran
 					   xStart = 0,yStart = 0,xEnd = 0,yEnd = 0, 
 					   rotationStart = 0,rotationEnd = 0}
 
---
---		Class managing transitions. We return an singleton instance of this.
---
+--- ************************************************************************************************************************************************************************
+---
+---											Class managing transitions. We return an singleton instance of this.
+---
+--- ************************************************************************************************************************************************************************
+
 local TransitionManager = Base:new()
 
 function TransitionManager:initialise()
@@ -126,17 +141,20 @@ function TransitionManager:transitionCompletedMessage()
 	end
 end
 
---
---	This will be the instance of transition manager that we work with.
---
-local manager = TransitionManager:new()
+--- ************************************************************************************************************************************************************************
+---
+---											Set up Transition Manager as a working instance, add the transition definitions.
+---
+--- ************************************************************************************************************************************************************************
+
+TransitionManager:initialise() 															-- We use transition manager as a working instance
 --
 --	Helper Function for defining transitions
 --
 local function defineTransition(transitionName,fromTransition,toTransition,options)
 	local fto = Transition:new():set(fromTransition,options or {}) 						-- create a from-transition object
 	local tto = Transition:new():set(toTransition,options or {}) 						-- create a to-transition object
-	manager:add(transitionName,fto,tto) 												-- add to the transition manager instance
+	TransitionManager:add(transitionName,fto,tto) 										-- add to the transition manager instance
 end
 
 --

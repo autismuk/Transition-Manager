@@ -5,7 +5,7 @@
 -----------------------------------------------------------------------------------------
 
 
-local transitions = require("transitions")
+local transitions = require("system.transitions")
 
 function createScene(n)
 	local grp = display.newGroup()
