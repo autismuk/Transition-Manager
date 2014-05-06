@@ -12,17 +12,32 @@
 _G.Base =  _G.Base or { new = function(s,...) local o = { } setmetatable(o,s) s.__index = s o:initialise(...) return o end, initialise = function() end }
 
 --- ************************************************************************************************************************************************************************
----
----						Class encapsulating a single transition, which can perform a transition on a display object or my Scene class.
----
+--//	The transition class encapsulates a single transition, which can be 'executed' on a given object. It allows the modification of a display object of some type
+--//	from a 'start' state to an 'end' state. This can affect the position, rotation, alpha and scale of the object. 
+--//	On completion, the transition is set to its default state of the view group, not left in the terminal state of the transition. 
+--//	This class is available for use to trigger specific transinitions if required, but should not generally be used.
 --- ************************************************************************************************************************************************************************
 local Transition = Base:new()
+
+--//	Initialises the transition (this library does not use constructors).  The description and options are borrowed from the Storyboard legacy code
+--//	and have been slightly reformatted and reorganised. The descriptions are the terminal state (e.g. alpha = 0 means it ends up invisible)
+--
+--//	@description 	[description table]	a description of the transitions terminal state. For examples see the transition source file.
+--//	@option 		[option table]		options associated with those transition.
+--//	@return 		[Transition]		self, so can be chained.
 
 function Transition:set(description,option)
 	self.description = description 														-- Save the description
 	self.option = option or {} 															-- Save the options table
 	return self 																		-- Allow chaining
 end
+
+--//	This performs a specific transition on a display group - this may be a transition between two values (e.g. alpha from 1-0). These are used
+--//	for both ingoing and outgoing transition. When it completes it calls a method on another object.
+--
+--//	@displayGroup	[Corona Display Object]	the display object that is to be transitioned
+--//	@timerPeriod 	[Number]				the time that the transition will take, in milliseconds
+--//	@completionTarget [Object]				when the transition is completed, this objects transitionCompletedMessage() method will be called.
 
 function Transition:execute(displayGroup,timerPeriod,completionTarget)								
 	self.completionTarget = completionTarget 											-- remember where completed message is being sent.
@@ -42,6 +57,11 @@ function Transition:execute(displayGroup,timerPeriod,completionTarget)
 								  xScale = self.description.xScaleEnd, yScale = self.description.yScaleEnd })
 end
 
+--//	This is an event method, called when the transition is completed. It resets everything back to the default state - views/objects are not left
+--//	as they were post transition, and sends a transitionCompletionMessage() event to the object passed in the execute method
+--
+--//	@displayGroup 	[Corona Display Object]		the display group that was transitioned.
+
 function Transition:completed(displayGroup)
 	displayGroup.x,displayGroup.y = Transition.defaults.xEnd,Transition.defaults.yEnd 	-- on exit, set everything back to the defaults.
 	displayGroup.rotation = Transition.defaults.rotationEnd 							-- the transition manager hides or shows it, this just does the transition.
@@ -57,22 +77,44 @@ Transition.defaults = { alphaStart = 1.0, alphaEnd = 1.0,								-- List of tran
 					   rotationStart = 0,rotationEnd = 0}
 
 --- ************************************************************************************************************************************************************************
----
----											Class managing transitions. We return an singleton instance of this.
----
+--//	The Transition Manager is both a prototype and an instance, and also a singleton. It's purpose is to run a transaction between two views, according to one
+--//	of the 'standard definitions' (see Corona's documentation). It does not require a from or a to display object to transition, it will work happily with one
+--//	of either or both. (obviously it needs one of them !) It is strongly recommended that developers use the transition manager rather than instantiating their
+--//	own transaction objects, but it isn't forbidden either. The transition manager is also responsible for managing the list of named transitions (these are
+--//	similar to storyboard or composer).<BR>
+--//	This class is primarily used by the SceneManager library to transition between scenes in Corona.
 --- ************************************************************************************************************************************************************************
 
 local TransitionManager = Base:new()
 
+--//	Constructor, just clear the list of named transitions
+
 function TransitionManager:initialise()
 	self.transitionList = {} 															-- Clear the list of known transitions.
 end
+
+--//	Adds a transition pair to the register of named transitions
+--//	@name 	[string]					name of transition
+--//	@fromTransition [transition def]	descriptor of 'from' transition half (e.g. fade out)
+--//	@toTransition  [transition def]		descriptor of 'to' transition half (e.g. fade in)
 
 function TransitionManager:add(name,fromTransition,toTransition)
 	name = name:lower() 																-- all transition names are case insensitive
 	assert(self.transitionList[name] == nil,"Duplicate transition "..name) 				-- check for duplicates, which should not happen.
 	self.transitionList[name] = { from = fromTransition, to = toTransition } 			-- and store the transition.
 end
+
+--//	Execute a named transition on a pair of 'scenes' - actually Corona display objects. This transition runs in the background 
+--//	(e.g. the function returns promptly) and is over a specific period of time. If a 'target' is provided, it will receive a 
+--//	transitionCompleted() event (e.g. a method call) when the transition has completed.
+--//	Note that sceness maybe hidden or not and moved to the back/front during the transition, but all scenes will end up visible
+--// 	in the default state. 
+--
+--//	@transitionName [string] 			Name of transition in registry (see definitions in transitions.lua, same as Corona ones)
+--//	@target 		[object]			Object to be notified when transition has completed, may be nil.
+--//	@fromScene 		[display object]	Object to be transitioned 'out'. May be nil
+--//	@toScene 		[display object]	Object to be transitioned 'in'. May be nil 
+--//	@time 			[number]			number of milliseconds the transition should take.
 
 function TransitionManager:execute(transitionName,target,fromScene,toScene,time)
 	time = time or 500 																	-- default time is 0.5s
@@ -104,10 +146,18 @@ function TransitionManager:execute(transitionName,target,fromScene,toScene,time)
 	end
 end
 
+--//	Helper method that launches a specific transition on a specific scene.
+--//	@scene 		[display object]		scene to transition
+--//	@transition [transition]			transition to perform it on.
+
 function TransitionManager:launch(scene,transition)
 	self.launchCount = self.launchCount + 1 											-- increment the launch count.
 	transition:execute(scene,self.sceneInfo.time,self) 									-- start the transition and notify
 end
+
+--//	Helper method that makes a scene visible or not (if it exists) and also brings it to the front.
+--//	@scene 		[display object]		scene to make visible or otherwise
+--//	@isVisible	[boolean]				visibility state required
 
 function TransitionManager:makeVisible(scene,isVisible) 								-- set visibility state - allows use of different objects.
 	if scene ~= nil then 																-- if there is a scene, then 
@@ -115,6 +165,9 @@ function TransitionManager:makeVisible(scene,isVisible) 								-- set visibilit
 		scene:toFront() 																-- move to the top of the stack
 	end
 end
+
+--//	Helper method - receives 'transition completed' message from transition, then figures out what's going on - has it finished
+--//	or does it have to launch the out transition (if you have an in and an out and they are not concurrent)
 
 function TransitionManager:transitionCompletedMessage()
 	self.launchCount = self.launchCount - 1 											-- decrement the launch count.
