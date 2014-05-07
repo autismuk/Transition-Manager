@@ -1,7 +1,10 @@
-<!DOCTYPE html><html><head><style>body { background:#333; color:#0F0; font-family:Arial,Verdana;} h1 { color:#FF0; } h2 { color:#0FF } table,tr,td { color: #CCC; padding:4px;border:1px solid white; border-collapse:collapse; }</style></head><body>
+<!DOCTYPE html><html><head><style>body { background:#333; color:#0F0; font-family:Arial,Verdana;} a { color:#0AA } h1 { color:#FF0; } h2 { color:#0FF } table,tr,td { color: #CCC; padding:4px;border:1px solid white; border-collapse:collapse; }</style></head><body>
+<a name="Transition"></a>
 <hr><h1>Transition</h1>
 <p><h3>Extends Base</h3></p>
-<p>The transition class encapsulates a single transition, which can be 'executed' on a given object. It allows the modification of a display object of some type from a 'start' state to an 'end' state. This can affect the position, rotation, alpha and scale of the object. On completion, the transition is set to its default state of the view group, not left in the terminal state of the transition. This class is available for use to trigger specific transinitions if required, but should not generally be used.</p><hr>
+<p>The transition class encapsulates a single transition, which can be 'executed' on a given object. It allows the modification of a display object of some type from a 'start' state to an 'end' state. This can affect the position, rotation, alpha and scale of the object. On completion, the transition is set to its default state of the view group, not left in the terminal state of the transition. This class is available for use to trigger specific transinitions if required, but should not generally be used.</p>
+<p>Methods : <a href="#Transition_execute"/>execute</a>,<a href="#Transition_set"/>set</a></p><hr><a name="Transition_completed"></a>
+<a name="Transition_execute"></a>
 <h2>execute(displayGroup,timerPeriod,completionTarget)</h2>
 <table>
 <tr><td>displayGroup</td><td>Corona Display Object</td><td>the display object that is to be transitioned</td></tr>
@@ -9,6 +12,7 @@
 <tr><td>completionTarget</td><td>Object</td><td>when the transition is completed, this objects transitionCompletedMessage() method will be called.</td></tr>
 </table>
 <p>This performs a specific transition on a display group - this may be a transition between two values (e.g. alpha from 1-0). These are used for both ingoing and outgoing transition. When it completes it calls a method on another object.</p>
+<a name="Transition_set"></a>
 <h2>set(description,option)</h2>
 <table>
 <tr><td>description</td><td>description table</td><td>a description of the transitions terminal state. For examples see the transition source file.</td></tr>
@@ -16,11 +20,15 @@
 <tr><td>return</td><td>Transition</td><td>self, so can be chained.</td></tr>
 </table>
 <p>Initialises the transition (this library does not use constructors). The description and options are borrowed from the Storyboard legacy code and have been slightly reformatted and reorganised. The descriptions are the terminal state (e.g. alpha = 0 means it ends up invisible)</p>
+<a name="TransitionManager"></a>
 <hr><h1>TransitionManager</h1>
 <p><h3>Extends Base</h3></p>
-<p>The Transition Manager is both a prototype and an instance, and also a singleton. It's purpose is to run a transaction between two views, according to one of the 'standard definitions' (see Corona's documentation). It does not require a from or a to display object to transition, it will work happily with one of either or both. (obviously it needs one of them !) It is strongly recommended that developers use the transition manager rather than instantiating their own transaction objects, but it isn't forbidden either. The transition manager is also responsible for managing the list of named transitions (these are similar to storyboard or composer).<BR> This class is primarily used by the SceneManager library to transition between scenes in Corona.</p><hr>
+<p>The Transition Manager is both a prototype and an instance, and also a singleton. It's purpose is to run a transaction between two views, according to one of the 'standard definitions' (see Corona's documentation). It does not require a from or a to display object to transition, it will work happily with one of either or both. (obviously it needs one of them !) It is strongly recommended that developers use the transition manager rather than instantiating their own transaction objects, but it isn't forbidden either. The transition manager is also responsible for managing the list of named transitions (these are similar to storyboard or composer).<BR> This class is primarily used by the SceneManager library to transition between scenes in Corona.</p>
+<p>Methods : <a href="#TransitionManager_(constructor)"/>(constructor)</a>,<a href="#TransitionManager_execute"/>execute</a></p><hr><a name="TransitionManager_(constructor)"></a>
 <h2>(constructor)()</h2>
 <p>Constructor, just clear the list of named transitions</p>
+<a name="TransitionManager_add"></a>
+<a name="TransitionManager_execute"></a>
 <h2>execute(transitionName,target,fromScene,toScene,time)</h2>
 <table>
 <tr><td>transitionName</td><td>string</td><td>Name of transition in registry (see definitions in transitions.lua, same as Corona ones)</td></tr>
@@ -30,4 +38,7 @@
 <tr><td>time</td><td>number</td><td>number of milliseconds the transition should take.</td></tr>
 </table>
 <p>Execute a named transition on a pair of 'scenes' - actually Corona display objects. This transition runs in the background (e.g. the function returns promptly) and is over a specific period of time. If a 'target' is provided, it will receive a transitionCompleted() event (e.g. a method call) when the transition has completed. Note that sceness maybe hidden or not and moved to the back/front during the transition, but all scenes will end up visible in the default state.</p>
+<a name="TransitionManager_launch"></a>
+<a name="TransitionManager_makeVisible"></a>
+<a name="TransitionManager_transitionCompletedMessage"></a>
 <hr><p><i>LUA Autodoc by Paul Robson 2014</i></p><hr></body></html>
